@@ -1,0 +1,6 @@
+@Pet.Wise.Api_HostAddress = http://localhost:5155
+
+GET {{Pet.Wise.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

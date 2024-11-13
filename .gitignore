@@ -1,0 +1,68 @@
+# Configurações gerais
+bin/
+obj/
+
+# Arquivos de configuração de usuário
+*.user
+*.rsuser
+*.suo
+
+# Arquivos de build e publicação
+*.cache
+*.pdb
+*.exe
+*.dll
+*.ilk
+*.log
+*.lib
+*.nupkg
+*.snk
+*.swp
+
+# Diretórios e arquivos temporários
+[Tt]emp/
+*.tmp
+*.log
+*.vspscc
+
+# Diretórios do Visual Studio
+.vscode/
+.vs/
+
+# Configurações do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Pacotes NuGet
+packages/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+
+# Arquivos de debug
+*.log
+*.tlog
+*.lastcodeanalysissucceeded
+
+# Arquivos de migrações do EF Core
+Migrations/
+
+# Arquivos gerados pelo Rider
+.idea/
+
+# Arquivos de cache do ReSharper
+_ReSharper*/
+*.DotSettings.user
+
+# Arquivos de publicação
+publish/
+app.publish/
+
+# Secrets e arquivos de configuração local
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.json
+secrets.json
+
+# Arquivos de lock específicos de versões de dependências
+global.json
