@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/49912b16-bce4-440c-a697-1a36ac5da11b)# pet-wise-api-csharp
+# pet-wise-api-csharp
 
 Acessar a documentação da API em:
 > https://localhost:7258/swagger/index.html
