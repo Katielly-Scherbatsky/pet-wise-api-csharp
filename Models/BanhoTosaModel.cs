@@ -2,14 +2,14 @@
 
 namespace Pet.Wise.Api.Models
 {
-    [Table("pesagem")]
-    public class PesagemModel : ModelBase
+    [Table("banho_tosa")]
+    public class BanhoTosaModel : ModelBase
     {
-        [Column("peso")]
-        public decimal Peso { get; set; }
+        [Column("executor")]
+        public string Executor { get; set; } = string.Empty;
 
-        [Column("data_pesagem")]
-        public DateTime DataPesagem { get; set; }
+        [Column("data_servico")]
+        public DateTime DataServico { get; set; }
 
         [Column("observacoes")]
         public string Observacoes { get; set; } = string.Empty;

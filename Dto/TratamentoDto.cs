@@ -2,11 +2,11 @@
 
 namespace Pet.Wise.Api.Dto
 {
-    public class VacinaDto
+    public class TratamentoDto
     {
         [Required(ErrorMessage = "Campo obrigatório")]
         [MinLength(5, ErrorMessage = "Obrigatório mínimo de 5 caracteres")]
-        public string NomeVacina { get; set; } = string.Empty;
+        public string TipoTratamento { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Campo obrigatório")]
         public DateTime DataAplicacao { get; set; }
