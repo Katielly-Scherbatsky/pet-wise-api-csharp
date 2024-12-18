@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Pet.Wise.Api.Models
 {
@@ -13,5 +14,8 @@ namespace Pet.Wise.Api.Models
 
         [Column("senha")]
         public string Senha { get; set; } = string.Empty;
+
+        [JsonIgnore]
+        public virtual List<AnimalModel> Animais { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Pet.Wise.Api.Models
 {
@@ -22,5 +23,7 @@ namespace Pet.Wise.Api.Models
 
         [Column("animal_id")]
         public int AnimalId { get; set; }
+
+        public virtual AnimalModel Animal { get; set; }
     }
 }

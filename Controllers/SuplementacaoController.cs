@@ -22,7 +22,7 @@ namespace Pet.Wise.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var suplementacoes = await _context.Suplementacao.ToListAsync();
+            var suplementacoes = await _context.Suplementacao.Include(v => v.Animal).ToListAsync();
 
             if (suplementacoes == null || suplementacoes.Count == 0)
             {
@@ -35,7 +35,7 @@ namespace Pet.Wise.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var suplementacao = await _context.Suplementacao.FirstOrDefaultAsync(a => a.Id == id);
+            var suplementacao = await _context.Suplementacao.Include(v => v.Animal).FirstOrDefaultAsync(a => a.Id == id);
 
             if (suplementacao == null)
             {

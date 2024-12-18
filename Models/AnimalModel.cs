@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Pet.Wise.Api.Models
 {
@@ -13,5 +14,22 @@ namespace Pet.Wise.Api.Models
 
         [Column("usuario_id")]
         public int UsuarioId { get; set; }
+
+        public virtual UsuarioModel Usuario { get; set; }
+
+        [JsonIgnore]
+        public virtual List<VacinacaoModel> Vacinacoes { get; set; } = new();
+        
+        [JsonIgnore]
+        public virtual List<TratamentoModel> Tratamentos { get; set; } = new();
+        
+        [JsonIgnore]
+        public virtual List<SuplementacaoModel> Suplementacoes { get; set; } = new();
+        
+        [JsonIgnore]
+        public virtual List<PesagemModel> Pesagens { get; set; } = new();
+        
+        [JsonIgnore]
+        public virtual List<BanhoTosaModel> BanhoTosas { get; set; } = new();
     }
 }
