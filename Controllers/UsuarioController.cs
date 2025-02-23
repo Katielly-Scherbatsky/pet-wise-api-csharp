@@ -7,7 +7,7 @@ using Pet.Wise.Api.Models;
 namespace Pet.Wise.Api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("usuario")]
     public class UsuarioController : ControllerBase
     {
         private readonly ILogger<UsuarioController> _logger;

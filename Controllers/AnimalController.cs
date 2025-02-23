@@ -7,7 +7,7 @@ using Pet.Wise.Api.Models;
 namespace Pet.Wise.Api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("animal")]
     public class AnimalController : ControllerBase
     {
         private readonly ILogger<AnimalController> _logger;
@@ -54,6 +54,11 @@ namespace Pet.Wise.Api.Controllers
                 DataNascimento = dto.DataNascimento,
                 UsuarioId = dto.UsuarioId,
             };
+
+            if (_context.Usuario.FirstOrDefault(x => x.Id == dto.UsuarioId) == null)
+            {
+                return NotFound();
+            }
 
             _context.Animal.Add(animal);
             await _context.SaveChangesAsync();

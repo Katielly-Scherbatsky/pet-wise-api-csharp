@@ -4,7 +4,7 @@ using Pet.Wise.Api.Dto;
 namespace Pet.Wise.Api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("auth")]
     public class AuthController : ControllerBase
     {
 

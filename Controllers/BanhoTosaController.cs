@@ -7,7 +7,7 @@ using Pet.Wise.Api.Models;
 namespace Pet.Wise.Api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("banho-tosa")]
     public class BanhoTosaController : ControllerBase
     {
         private readonly ILogger<BanhoTosaController> _logger;
