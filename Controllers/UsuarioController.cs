@@ -7,7 +7,7 @@ using Pet.Wise.Api.Models;
 namespace Pet.Wise.Api.Controllers
 {
     [ApiController]
-    [Route("usuario")]
+    [Route("api/[controller]")]
     public class UsuarioController : ControllerBase
     {
         private readonly ILogger<UsuarioController> _logger;
@@ -24,22 +24,17 @@ namespace Pet.Wise.Api.Controllers
         {
             var usuarios = await _context.Usuario.ToListAsync();
 
-            if (usuarios == null || usuarios.Count == 0)
-            {
-                return NotFound("Nenhum dado encontrado.");
-            }
-
             return Ok(usuarios);
         }
 
-
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
             var usuario = await _context.Usuario.FirstOrDefaultAsync(a => a.Id == id);
 
             if (usuario == null)
             {
+                _logger.LogWarning("Usuário com ID {Id} não encontrado.", id);
                 return NotFound($"Usuário com ID {id} não encontrado.");
             }
 
@@ -49,6 +44,16 @@ namespace Pet.Wise.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] UsuarioDto dto)
         {
+            if (dto == null)
+            {
+                return BadRequest("Dados do usuário são obrigatórios.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var usuario = new UsuarioModel
             {
                 Nome = dto.Nome,
@@ -61,13 +66,24 @@ namespace Pet.Wise.Api.Controllers
 
             return CreatedAtAction(nameof(GetById), new { id = usuario.Id }, usuario);
         }
-        [HttpPut("{id}")]
+
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> Put(int id, [FromBody] UsuarioDto dto)
         {
-            var usuario = await _context.Usuario.FindAsync(id);
+            if (dto == null)
+            {
+                return BadRequest("Dados do usuário são obrigatórios.");
+            }
 
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var usuario = await _context.Usuario.FindAsync(id);
             if (usuario == null)
             {
+                _logger.LogWarning("Usuário com ID {Id} não encontrado.", id);
                 return NotFound($"Usuário com ID {id} não encontrado.");
             }
 
@@ -80,13 +96,13 @@ namespace Pet.Wise.Api.Controllers
             return Ok(usuario);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             var usuario = await _context.Usuario.FindAsync(id);
-
             if (usuario == null)
             {
+                _logger.LogWarning("Usuário com ID {Id} não encontrado.", id);
                 return NotFound($"Usuário com ID {id} não encontrado.");
             }
 

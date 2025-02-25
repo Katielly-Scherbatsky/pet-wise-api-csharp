@@ -7,7 +7,7 @@ using Pet.Wise.Api.Models;
 namespace Pet.Wise.Api.Controllers
 {
     [ApiController]
-    [Route("animal")]
+    [Route("api/[controller]")]
     public class AnimalController : ControllerBase
     {
         private readonly ILogger<AnimalController> _logger;
@@ -22,23 +22,23 @@ namespace Pet.Wise.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var animais = await _context.Animal.Include(x => x.Usuario).ToListAsync();
-
-            if (animais == null || animais.Count == 0)
-            {
-                return NotFound("Nenhum animal encontrado.");
-            }
+            var animais = await _context.Animal
+                .Include(x => x.Usuario)
+                .ToListAsync();
 
             return Ok(animais);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var animal = await _context.Animal.Include(x => x.Usuario).FirstOrDefaultAsync(a => a.Id == id);
+            var animal = await _context.Animal
+                .Include(x => x.Usuario)
+                .FirstOrDefaultAsync(a => a.Id == id);
 
             if (animal == null)
             {
+                _logger.LogWarning("Animal com ID {Id} não encontrado.", id);
                 return NotFound($"Animal com ID {id} não encontrado.");
             }
 
@@ -48,6 +48,23 @@ namespace Pet.Wise.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] AnimalDto dto)
         {
+            if (dto == null)
+            {
+                return BadRequest("Dados do animal são obrigatórios.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var usuarioExiste = await _context.Usuario.AnyAsync(x => x.Id == dto.UsuarioId);
+            if (!usuarioExiste)
+            {
+                _logger.LogWarning("Usuário com ID {UsuarioId} não encontrado.", dto.UsuarioId);
+                return BadRequest($"Usuário com ID {dto.UsuarioId} não encontrado.");
+            }
+
             var animal = new AnimalModel
             {
                 Nome = dto.Nome,
@@ -55,25 +72,40 @@ namespace Pet.Wise.Api.Controllers
                 UsuarioId = dto.UsuarioId,
             };
 
-            if (_context.Usuario.FirstOrDefault(x => x.Id == dto.UsuarioId) == null)
-            {
-                return NotFound();
-            }
-
             _context.Animal.Add(animal);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetById), new { id = animal.Id }, animal);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> Put(int id, [FromBody] AnimalDto dto)
         {
-            var animal = await _context.Animal.FindAsync(id);
+            if (dto == null)
+            {
+                return BadRequest("Dados do animal são obrigatórios.");
+            }
 
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var animal = await _context.Animal.FindAsync(id);
             if (animal == null)
             {
+                _logger.LogWarning("Animal com ID {Id} não encontrado.", id);
                 return NotFound($"Animal com ID {id} não encontrado.");
+            }
+
+            if (animal.UsuarioId != dto.UsuarioId)
+            {
+                var usuarioExiste = await _context.Usuario.AnyAsync(x => x.Id == dto.UsuarioId);
+                if (!usuarioExiste)
+                {
+                    _logger.LogWarning("Usuário com ID {UsuarioId} não encontrado.", dto.UsuarioId);
+                    return BadRequest($"Usuário com ID {dto.UsuarioId} não encontrado.");
+                }
             }
 
             animal.Nome = dto.Nome;
@@ -85,13 +117,13 @@ namespace Pet.Wise.Api.Controllers
             return Ok(animal);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             var animal = await _context.Animal.FindAsync(id);
-
             if (animal == null)
             {
+                _logger.LogWarning("Animal com ID {Id} não encontrado.", id);
                 return NotFound($"Animal com ID {id} não encontrado.");
             }
 

@@ -7,7 +7,7 @@ using Pet.Wise.Api.Models;
 namespace Pet.Wise.Api.Controllers
 {
     [ApiController]
-    [Route("vacinacao")]
+    [Route("api/[controller]")]
     public class VacinacaoController : ControllerBase
     {
         private readonly ILogger<VacinacaoController> _logger;
@@ -22,24 +22,24 @@ namespace Pet.Wise.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var vacinacoes = await _context.Vacinacao.Include(v => v.Animal).ToListAsync();
-
-            if (vacinacoes == null || vacinacoes.Count == 0)
-            {
-                return NotFound("Nenhum animal encontrado.");
-            }
+            var vacinacoes = await _context.Vacinacao
+                .Include(v => v.Animal)
+                .ToListAsync();
 
             return Ok(vacinacoes);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var vacinacao = await _context.Vacinacao.Include(v => v.Animal).FirstOrDefaultAsync(a => a.Id == id);
+            var vacinacao = await _context.Vacinacao
+                .Include(v => v.Animal)
+                .FirstOrDefaultAsync(a => a.Id == id);
 
             if (vacinacao == null)
             {
-                return NotFound($"Vacinação com ID {id} não encontrado.");
+                _logger.LogWarning("Vacinação com ID {Id} não encontrada.", id);
+                return NotFound($"Vacinação com ID {id} não encontrada.");
             }
 
             return Ok(vacinacao);
@@ -48,6 +48,23 @@ namespace Pet.Wise.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] VacinacaoDto dto)
         {
+            if (dto == null)
+            {
+                return BadRequest("Dados da vacinação são obrigatórios.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var animalExiste = await _context.Animal.AnyAsync(a => a.Id == dto.AnimalId);
+            if (!animalExiste)
+            {
+                _logger.LogWarning("Animal com ID {AnimalId} não encontrado.", dto.AnimalId);
+                return BadRequest($"Animal com ID {dto.AnimalId} não encontrado.");
+            }
+
             var vacinacao = new VacinacaoModel
             {
                 NomeVacina = dto.NomeVacina,
@@ -63,14 +80,34 @@ namespace Pet.Wise.Api.Controllers
             return CreatedAtAction(nameof(GetById), new { id = vacinacao.Id }, vacinacao);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> Put(int id, [FromBody] VacinacaoDto dto)
         {
-            var vacinacao = await _context.Vacinacao.FindAsync(id);
+            if (dto == null)
+            {
+                return BadRequest("Dados da vacinação são obrigatórios.");
+            }
 
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var vacinacao = await _context.Vacinacao.FindAsync(id);
             if (vacinacao == null)
             {
-                return NotFound($"Vacinação com ID {id} não encontrado.");
+                _logger.LogWarning("Vacinação com ID {Id} não encontrada.", id);
+                return NotFound($"Vacinação com ID {id} não encontrada.");
+            }
+
+            if (vacinacao.AnimalId != dto.AnimalId)
+            {
+                var animalExiste = await _context.Animal.AnyAsync(a => a.Id == dto.AnimalId);
+                if (!animalExiste)
+                {
+                    _logger.LogWarning("Animal com ID {AnimalId} não encontrado.", dto.AnimalId);
+                    return BadRequest($"Animal com ID {dto.AnimalId} não encontrado.");
+                }
             }
 
             vacinacao.NomeVacina = dto.NomeVacina;
@@ -84,14 +121,14 @@ namespace Pet.Wise.Api.Controllers
             return Ok(vacinacao);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             var vacinacao = await _context.Vacinacao.FindAsync(id);
-
             if (vacinacao == null)
             {
-                return NotFound($"Vacinação com ID {id} não encontrado.");
+                _logger.LogWarning("Vacinação com ID {Id} não encontrada.", id);
+                return NotFound($"Vacinação com ID {id} não encontrada.");
             }
 
             _context.Vacinacao.Remove(vacinacao);

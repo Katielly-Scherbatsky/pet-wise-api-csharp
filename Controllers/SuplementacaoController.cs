@@ -7,7 +7,7 @@ using Pet.Wise.Api.Models;
 namespace Pet.Wise.Api.Controllers
 {
     [ApiController]
-    [Route("suplementacao")]
+    [Route("api/[controller]")]
     public class SuplementacaoController : ControllerBase
     {
         private readonly ILogger<SuplementacaoController> _logger;
@@ -22,24 +22,24 @@ namespace Pet.Wise.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var suplementacoes = await _context.Suplementacao.Include(v => v.Animal).ToListAsync();
-
-            if (suplementacoes == null || suplementacoes.Count == 0)
-            {
-                return NotFound("Nenhum dado encontrado.");
-            }
+            var suplementacoes = await _context.Suplementacao
+                .Include(s => s.Animal)
+                .ToListAsync();
 
             return Ok(suplementacoes);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var suplementacao = await _context.Suplementacao.Include(v => v.Animal).FirstOrDefaultAsync(a => a.Id == id);
+            var suplementacao = await _context.Suplementacao
+                .Include(s => s.Animal)
+                .FirstOrDefaultAsync(s => s.Id == id);
 
             if (suplementacao == null)
             {
-                return NotFound($"Suplementação com ID {id} não encontrado.");
+                _logger.LogWarning("Suplementação com ID {Id} não encontrada.", id);
+                return NotFound($"Suplementação com ID {id} não encontrada.");
             }
 
             return Ok(suplementacao);
@@ -48,6 +48,23 @@ namespace Pet.Wise.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] SuplementacaoDto dto)
         {
+            if (dto == null)
+            {
+                return BadRequest("Dados de suplementação são obrigatórios.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var animalExiste = await _context.Animal.AnyAsync(a => a.Id == dto.AnimalId);
+            if (!animalExiste)
+            {
+                _logger.LogWarning("Animal com ID {AnimalId} não encontrado.", dto.AnimalId);
+                return BadRequest($"Animal com ID {dto.AnimalId} não encontrado.");
+            }
+
             var suplementacao = new SuplementacaoModel
             {
                 TipoSuplementacao = dto.TipoSuplementacao,
@@ -64,17 +81,38 @@ namespace Pet.Wise.Api.Controllers
             return CreatedAtAction(nameof(GetById), new { id = suplementacao.Id }, suplementacao);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> Put(int id, [FromBody] SuplementacaoDto dto)
         {
-            var suplementacao = await _context.Suplementacao.FindAsync(id);
+            if (dto == null)
+            {
+                return BadRequest("Dados de suplementação são obrigatórios.");
+            }
 
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var suplementacao = await _context.Suplementacao.FindAsync(id);
             if (suplementacao == null)
             {
-                return NotFound($"Suplementação com ID {id} não encontrado.");
+                _logger.LogWarning("Suplementação com ID {Id} não encontrada.", id);
+                return NotFound($"Suplementação com ID {id} não encontrada.");
+            }
+
+            if (suplementacao.AnimalId != dto.AnimalId)
+            {
+                var animalExiste = await _context.Animal.AnyAsync(a => a.Id == dto.AnimalId);
+                if (!animalExiste)
+                {
+                    _logger.LogWarning("Animal com ID {AnimalId} não encontrado.", dto.AnimalId);
+                    return BadRequest($"Animal com ID {dto.AnimalId} não encontrado.");
+                }
             }
 
             suplementacao.TipoSuplementacao = dto.TipoSuplementacao;
+            suplementacao.NumeroDoses = dto.NumeroDoses;
             suplementacao.DataAplicacao = dto.DataAplicacao;
             suplementacao.DataProximaAplicacao = dto.DataProximaAplicacao;
             suplementacao.Observacoes = dto.Observacoes;
@@ -85,14 +123,14 @@ namespace Pet.Wise.Api.Controllers
             return Ok(suplementacao);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             var suplementacao = await _context.Suplementacao.FindAsync(id);
-
             if (suplementacao == null)
             {
-                return NotFound($"Suplementação com ID {id} não encontrado.");
+                _logger.LogWarning("Suplementação com ID {Id} não encontrada.", id);
+                return NotFound($"Suplementação com ID {id} não encontrada.");
             }
 
             _context.Suplementacao.Remove(suplementacao);
