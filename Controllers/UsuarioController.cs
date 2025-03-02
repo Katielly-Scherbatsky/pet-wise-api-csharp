@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Pet.Wise.Api.DataContexts;
 using Pet.Wise.Api.Dto;
@@ -6,9 +7,7 @@ using Pet.Wise.Api.Models;
 
 namespace Pet.Wise.Api.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class UsuarioController : ControllerBase
+    public class UsuarioController : BaseController
     {
         private readonly ILogger<UsuarioController> _logger;
         private readonly AppDbContext _context;
@@ -20,96 +19,144 @@ namespace Pet.Wise.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> Get()
         {
-            var usuarios = await _context.Usuario.ToListAsync();
+            try
+            {
+                var usuarios = await _context.Usuario.ToListAsync();
 
-            return Ok(usuarios);
+                return Ok(usuarios);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Falha ao buscar usuários");
+                return BadRequest();
+            }
         }
 
         [HttpGet("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> GetById(int id)
         {
-            var usuario = await _context.Usuario.FirstOrDefaultAsync(a => a.Id == id);
-
-            if (usuario == null)
+            try
             {
-                _logger.LogWarning("Usuário com ID {Id} não encontrado.", id);
-                return NotFound($"Usuário com ID {id} não encontrado.");
-            }
+                var usuario = await _context.Usuario.FirstOrDefaultAsync(a => a.Id == id);
 
-            return Ok(usuario);
+                if (usuario == null)
+                {
+                    _logger.LogWarning("Usuário com ID {Id} não encontrado.", id);
+                    return NotFound($"Usuário com ID {id} não encontrado.");
+                }
+
+                return Ok(usuario);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Falha ao buscar usuário pelo Id {Id}", id);
+                return BadRequest();
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] UsuarioDto dto)
         {
-            if (dto == null)
+            try
             {
-                return BadRequest("Dados do usuário são obrigatórios.");
+                if (dto == null)
+                {
+                    return BadRequest("Dados do usuário são obrigatórios.");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var usuario = new UsuarioModel
+                {
+                    Nome = dto.Nome,
+                    Email = dto.Email,
+                    Senha = dto.Senha,
+                };
+
+                _context.Usuario.Add(usuario);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(GetById), new { id = usuario.Id }, usuario);
             }
-
-            if (!ModelState.IsValid)
+            catch (Exception ex)
             {
-                return BadRequest(ModelState);
+                _logger.LogError(ex, "Falha ao criar usuário");
+                return BadRequest();
             }
-
-            var usuario = new UsuarioModel
-            {
-                Nome = dto.Nome,
-                Email = dto.Email,
-                Senha = dto.Senha,
-            };
-
-            _context.Usuario.Add(usuario);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetById), new { id = usuario.Id }, usuario);
         }
 
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Put(int id, [FromBody] UsuarioDto dto)
+        [HttpPut]
+        [Authorize]
+        public async Task<IActionResult> Put(UsuarioDto dto)
         {
-            if (dto == null)
+            var usuarioId = 0;
+            try
             {
-                return BadRequest("Dados do usuário são obrigatórios.");
-            }
+                if (dto == null)
+                {
+                    return BadRequest("Dados do usuário são obrigatórios.");
+                }
 
-            if (!ModelState.IsValid)
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                usuarioId = GetIdUsuarioLogado();
+                var usuario = await _context.Usuario.FindAsync(usuarioId);
+                if (usuario == null)
+                {
+                    _logger.LogWarning("Usuário com ID {Id} não encontrado.", usuarioId);
+                    return NotFound($"Usuário com ID {usuarioId} não encontrado.");
+                }
+
+                usuario.Nome = dto.Nome;
+                usuario.Email = dto.Email;
+                usuario.Senha = dto.Senha;
+
+                await _context.SaveChangesAsync();
+
+                return Ok(usuario);
+            }
+            catch (Exception ex)
             {
-                return BadRequest(ModelState);
+                _logger.LogError(ex, "Falha ao atualizar usuário com Id: {Id}", usuarioId);
+                return BadRequest();
             }
-
-            var usuario = await _context.Usuario.FindAsync(id);
-            if (usuario == null)
-            {
-                _logger.LogWarning("Usuário com ID {Id} não encontrado.", id);
-                return NotFound($"Usuário com ID {id} não encontrado.");
-            }
-
-            usuario.Nome = dto.Nome;
-            usuario.Email = dto.Email;
-            usuario.Senha = dto.Senha;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(usuario);
         }
 
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpDelete]
+        [Authorize]
+        public async Task<IActionResult> Delete()
         {
-            var usuario = await _context.Usuario.FindAsync(id);
-            if (usuario == null)
+            var usuarioId = 0;
+            try
             {
-                _logger.LogWarning("Usuário com ID {Id} não encontrado.", id);
-                return NotFound($"Usuário com ID {id} não encontrado.");
+                usuarioId = GetIdUsuarioLogado();
+                var usuario = await _context.Usuario.FindAsync(usuarioId);
+                if (usuario == null)
+                {
+                    _logger.LogWarning("Usuário com ID {Id} não encontrado.", usuarioId);
+                    return NotFound($"Usuário com ID {usuarioId} não encontrado.");
+                }
+
+                _context.Usuario.Remove(usuario);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
             }
-
-            _context.Usuario.Remove(usuario);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Falha ao excluir usuário com Id: {Id}", usuarioId);
+                return BadRequest();
+            }
         }
     }
 }

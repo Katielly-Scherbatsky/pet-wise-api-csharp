@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Pet.Wise.Api.DataContexts;
@@ -6,9 +7,8 @@ using Pet.Wise.Api.Models;
 
 namespace Pet.Wise.Api.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class BanhoTosaController : ControllerBase
+    [Authorize]
+    public class BanhoTosaController : BaseController
     {
         private readonly ILogger<BanhoTosaController> _logger;
         private readonly AppDbContext _context;
@@ -22,117 +22,168 @@ namespace Pet.Wise.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var registros = await _context.BanhoTosa
-                .Include(v => v.Animal)
-                .ToListAsync();
+            try
+            {
+                var usuarioId = GetIdUsuarioLogado();
+                var registros = await _context.BanhoTosa
+                    .Include(v => v.Animal)
+                    .Where(v => v.Animal.UsuarioId == usuarioId)
+                    .ToListAsync();
 
-            return Ok(registros);
+                return Ok(registros);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Falha ao buscar Banho e Tosa");
+                return BadRequest();
+            }
         }
 
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var registro = await _context.BanhoTosa
-                .Include(v => v.Animal)
-                .FirstOrDefaultAsync(a => a.Id == id);
-
-            if (registro == null)
+            try
             {
-                _logger.LogWarning("Banho e Tosa com ID {Id} não encontrado.", id);
-                return NotFound($"Banho e Tosa com ID {id} não encontrado.");
-            }
+                var usuarioId = GetIdUsuarioLogado();
+                var registro = await _context.BanhoTosa
+                    .Include(v => v.Animal)
+                    .FirstOrDefaultAsync(a => a.Id == id);
 
-            return Ok(registro);
+                if (registro == null)
+                {
+                    _logger.LogWarning("Banho e Tosa com ID {Id} não encontrado.", id);
+                    return NotFound($"Banho e Tosa com ID {id} não encontrado.");
+                }
+
+                return Ok(registro);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Falha ao buscar Banho e Tosa pelo Id {Id}", id);
+                return BadRequest();
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] BanhoTosaDto dto)
         {
-            if (dto == null)
+            try
             {
-                return BadRequest("Dados de Banho e Tosa são obrigatórios.");
-            }
+                if (dto == null)
+                {
+                    return BadRequest("Dados de Banho e Tosa são obrigatórios.");
+                }
 
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
 
-            var animalExiste = await _context.Animal.AnyAsync(a => a.Id == dto.AnimalId);
-            if (!animalExiste)
-            {
-                _logger.LogWarning("Animal com ID {AnimalId} não encontrado.", dto.AnimalId);
-                return BadRequest($"Animal com ID {dto.AnimalId} não encontrado.");
-            }
-
-            var banhoTosa = new BanhoTosaModel
-            {
-                Executor = dto.Executor,
-                DataServico = dto.DataServico,
-                Observacoes = dto.Observacoes,
-                AnimalId = dto.AnimalId
-            };
-
-            _context.BanhoTosa.Add(banhoTosa);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetById), new { id = banhoTosa.Id }, banhoTosa);
-        }
-
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Put(int id, [FromBody] BanhoTosaDto dto)
-        {
-            if (dto == null)
-            {
-                return BadRequest("Dados de Banho e Tosa são obrigatórios.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var banhoTosa = await _context.BanhoTosa.FindAsync(id);
-            if (banhoTosa == null)
-            {
-                _logger.LogWarning("Banho e Tosa com ID {Id} não encontrado.", id);
-                return NotFound($"Banho e Tosa com ID {id} não encontrado.");
-            }
-
-            if (banhoTosa.AnimalId != dto.AnimalId)
-            {
-                var animalExiste = await _context.Animal.AnyAsync(a => a.Id == dto.AnimalId);
+                var usuarioId = GetIdUsuarioLogado();
+                var animalExiste = await _context.Animal.AnyAsync(a => a.Id == dto.AnimalId && a.UsuarioId == usuarioId);
                 if (!animalExiste)
                 {
                     _logger.LogWarning("Animal com ID {AnimalId} não encontrado.", dto.AnimalId);
                     return BadRequest($"Animal com ID {dto.AnimalId} não encontrado.");
                 }
+
+                var banhoTosa = new BanhoTosaModel
+                {
+                    Executor = dto.Executor,
+                    DataServico = dto.DataServico,
+                    Observacoes = dto.Observacoes,
+                    AnimalId = dto.AnimalId
+                };
+
+                _context.BanhoTosa.Add(banhoTosa);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(GetById), new { id = banhoTosa.Id }, banhoTosa);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Falha ao criar Banho e Tosa");
+                return BadRequest();
+            }
+        }
 
-            banhoTosa.Executor = dto.Executor;
-            banhoTosa.DataServico = dto.DataServico;
-            banhoTosa.Observacoes = dto.Observacoes;
-            banhoTosa.AnimalId = dto.AnimalId;
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Put(int id, [FromBody] BanhoTosaDto dto)
+        {
+            try
+            {
+                if (dto == null)
+                {
+                    return BadRequest("Dados de Banho e Tosa são obrigatórios.");
+                }
 
-            await _context.SaveChangesAsync();
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
 
-            return Ok(banhoTosa);
+                var usuarioId = GetIdUsuarioLogado();
+                var banhoTosa = await _context.BanhoTosa
+                    .Include(v => v.Animal)
+                    .FirstOrDefaultAsync(v => v.Id == id && v.Animal.UsuarioId == usuarioId);
+
+                if (banhoTosa == null)
+                {
+                    _logger.LogWarning("Banho e Tosa com ID {Id} não encontrado.", id);
+                    return NotFound($"Banho e Tosa com ID {id} não encontrado.");
+                }
+
+                if (banhoTosa.AnimalId != dto.AnimalId)
+                {
+                    var animalExiste = await _context.Animal.AnyAsync(a => a.Id == dto.AnimalId && a.UsuarioId == usuarioId);
+                    if (!animalExiste)
+                    {
+                        _logger.LogWarning("Animal com ID {AnimalId} não encontrado.", dto.AnimalId);
+                        return BadRequest($"Animal com ID {dto.AnimalId} não encontrado.");
+                    }
+                }
+                banhoTosa.Executor = dto.Executor;
+                banhoTosa.DataServico = dto.DataServico;
+                banhoTosa.Observacoes = dto.Observacoes;
+                banhoTosa.AnimalId = dto.AnimalId;
+
+                await _context.SaveChangesAsync();
+
+                return Ok(banhoTosa);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Falha ao atualizar Banho e Tosa Id: {Id}", id);
+                return BadRequest();
+            }
         }
 
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var banhoTosa = await _context.BanhoTosa.FindAsync(id);
-            if (banhoTosa == null)
+            try
             {
-                _logger.LogWarning("Banho e Tosa com ID {Id} não encontrado.", id);
-                return NotFound($"Banho e Tosa com ID {id} não encontrado.");
+                var usuarioId = GetIdUsuarioLogado();
+                var banhoTosa = await _context.BanhoTosa
+                    .Include(v => v.Animal)
+                    .FirstOrDefaultAsync(v => v.Id == id && v.Animal.UsuarioId == usuarioId);
+
+                if (banhoTosa == null)
+                {
+                    _logger.LogWarning("Banho e Tosa com ID {Id} não encontrado.", id);
+                    return NotFound($"Banho e Tosa com ID {id} não encontrado.");
+                }
+
+                _context.BanhoTosa.Remove(banhoTosa);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
             }
-
-            _context.BanhoTosa.Remove(banhoTosa);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Falha ao excluir Banho e Tosa Id: {Id}", id);
+                return BadRequest();
+            }
         }
     }
 }

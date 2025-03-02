@@ -10,8 +10,5 @@ namespace Pet.Wise.Api.Dto
 
         [Required(ErrorMessage = "Campo obrigatório")]
         public DateTime DataNascimento { get; set; }
-
-        [Required(ErrorMessage = "Campo obrigatório")]
-        public int UsuarioId { get; set; }
     }
 }
