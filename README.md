@@ -1,6 +1,6 @@
 # pet-wise-api-csharp
 
-PetWise API é uma interface robusta e fácil de usar para integrar e gerenciar a saúde e os cuidados de animais de estimação. A API oferece endpoints para o cadastro de informações detalhadas do pet, monitoramento de peso, registro de vacinas, gerenciamento de lembretes de medicação, entre outras funcionalidades.
+PetWise API é uma interface robusta e fácil de usar para integrar e gerenciar a saúde e os cuidados de animais de estimação. A API oferece endpoints para o cadastro de informações detalhadas do pet, monitoramento de peso, registro de vacinas, entre outras funcionalidades.
 
 Acessar a documentação da API em:
 > https://localhost:7258/swagger/index.html
