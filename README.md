@@ -1,22 +1,24 @@
-# pet-wise-api-csharp
+![image](https://github.com/user-attachments/assets/362ada6e-30b7-456a-b1e0-71b84536dfe0)# pet-wise-api-csharp
 
 PetWise API é uma interface robusta e fácil de usar para integrar e gerenciar a saúde e os cuidados de animais de estimação. A API oferece endpoints para o cadastro de informações detalhadas do pet, monitoramento de peso, registro de vacinas, entre outras funcionalidades.
 
 Acessar a documentação da API em:
 > https://localhost:7258/swagger/index.html
 
-![image](https://github.com/user-attachments/assets/50b9acd3-bbaf-46d9-9314-73942dfd7d33)
+![image](https://github.com/user-attachments/assets/48ff4298-9097-4b42-a3fa-9d3142d0a3bc)
 
-![image](https://github.com/user-attachments/assets/0e2f9d57-8af1-457c-aa51-f89a0fbc2afc)
+![image](https://github.com/user-attachments/assets/ca5b6e15-38d9-4e9c-bc5f-c86cbb9c3668)
 
-![image](https://github.com/user-attachments/assets/62c525a0-e8d6-4c5e-94ac-75abcb5bf236)
+![image](https://github.com/user-attachments/assets/ae4155a6-ebe5-41ff-a6dd-0c45587998b7)
 
-![image](https://github.com/user-attachments/assets/cccb88c2-d3d5-412e-8b81-55f9d3f3843b)
+![image](https://github.com/user-attachments/assets/9d0d40e3-8fe2-478b-b5db-a0013f49a3ac)
 
-![image](https://github.com/user-attachments/assets/49188b95-fd64-40ba-98a0-71caa9392679)
+![image](https://github.com/user-attachments/assets/81d604da-0f92-40e0-8dcf-d6019a0cd759)
 
-![image](https://github.com/user-attachments/assets/e0877332-3ba8-42ed-923b-23c477701923)
+![image](https://github.com/user-attachments/assets/97e31c5d-4d1b-48d6-9c16-090c601e1350)
 
-![image](https://github.com/user-attachments/assets/b3e41093-68a1-43ba-b33e-7b2891f4795a)
+![image](https://github.com/user-attachments/assets/ebf3ca04-342b-4781-9ba8-e1c115b9253f)
 
+![image](https://github.com/user-attachments/assets/dd711de2-e5d6-4e6c-91fc-da9d54f0aa0c)
 
+![image](https://github.com/user-attachments/assets/8d4411bb-fb4a-4574-95f2-cc8518e10581)
